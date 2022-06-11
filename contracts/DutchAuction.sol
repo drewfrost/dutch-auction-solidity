@@ -1,9 +1,9 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import 'hardhat/console.sol';
-
 import '@openzeppelin/contracts/utils/math/Math.sol';
+
+import 'hardhat/console.sol';
 
 contract DutchAuction {
     event Buy(address winner, uint256 amount);
@@ -25,9 +25,23 @@ contract DutchAuction {
         auctionEnd = _auctionEnd;
     }
 
+    function buy() external payable {
+        require(winner == address(0), 'Auction finished');
+        uint256 cost = getCost(block.timestamp);
+        console.log(cost);
+        require(msg.value >= cost, 'Not enough ether to buy');
+        winner = msg.sender;
+        emit Buy(winner, msg.value);
+        seller.transfer(cost);
+    }
+
+    function getCurrentCost() external view returns (uint256) {
+        return getCost(block.timestamp);
+    }
+
     function getCost(uint256 date) public view returns (uint256) {
-        require((date >= auctionStart), "Auction has not started yet");
-        require((date <= auctionEnd), "Auction has already ended");
+        require((date >= auctionStart), 'Auction has not started yet');
+        require((date <= auctionEnd), 'Auction has already ended');
         return
             ((auctionEnd - date) * startingPrice) / (auctionEnd - auctionStart);
     }
