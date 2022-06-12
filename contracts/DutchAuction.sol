@@ -27,15 +27,18 @@ contract DutchAuction {
 
     function buy() external payable {
         require(winner == address(0), 'Auction finished');
-        uint256 cost = getCost(block.timestamp);
-        console.log(cost);
+        uint256 cost = getCurrentCost();
         require(msg.value >= cost, 'Not enough ether to buy');
         winner = msg.sender;
         emit Buy(winner, msg.value);
         seller.transfer(cost);
+        uint refund = msg.value - cost;
+        if (refund > 0) {
+            payable(msg.sender).transfer(refund);
+        }
     }
 
-    function getCurrentCost() external view returns (uint256) {
+    function getCurrentCost() public view returns (uint256) {
         return getCost(block.timestamp);
     }
 
